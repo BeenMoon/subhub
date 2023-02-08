@@ -3,13 +3,13 @@ from requests import get
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.models import variable
+from airflow.models import Variable
 from airflow.operators.python import PythonOperator
 from airflow.hooks.postgres_hook import PostgresHook
 
 
 def get_forecast(**context):
-    api_key = context['params']['api_key']
+    api_key = context['params']['api_key'].get_val()
     link = f"https://api.openweathermap.org/data/2.5/onecall?lat=37.413294&lon=126.734086&exclude=current,minutely,hourly,alerts&appid={api_key}&units=metric"
     logging.info("Getting forecast start")
     try:
@@ -97,7 +97,7 @@ get_forecast = PythonOperator(
     task_id = 'get_forecast',
     python_callable = get_forecast,
     params = {
-        'api_key': variable.Variable('open_weather_api_key').get_val()
+        'api_key': Variable.get('open_weather_api_key')
         },
     dag = dag_forecast
     )
