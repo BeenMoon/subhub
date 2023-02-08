@@ -3,12 +3,9 @@ from requests import get
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.models import Variable
-from airflow.models.param import Param
+from airflow.models import variable
 from airflow.operators.python import PythonOperator
 from airflow.hooks.postgres_hook import PostgresHook
-
-from cryptography.fernet import Fernet
 
 
 def get_forecast(**context):
@@ -100,7 +97,7 @@ get_forecast = PythonOperator(
     task_id = 'get_forecast',
     python_callable = get_forecast,
     params = {
-        'api_key': Variable.get('open_weather_api_key')
+        'api_key': variable.Variable('open_weather_api_key').get_val()
         },
     dag = dag_forecast
     )
