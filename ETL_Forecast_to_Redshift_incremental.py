@@ -4,20 +4,18 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.models import Variable
-from airflow.models.crypto import get_fernet
 from airflow.operators.python import PythonOperator
 from airflow.hooks.postgres_hook import PostgresHook
 
 
 def get_forecast(**context):
-    fernet = get_fernet()
-    api_key = fernet.decrypt(context['params']['api_key'])
+    api_key = context['params']['api_key']
     link = f"https://api.openweathermap.org/data/2.5/onecall?lat=37.413294&lon=126.734086&exclude=current,minutely,hourly,alerts&appid={api_key}&units=metric"
     logging.info("Getting forecast start")
     try:
         daily = get(link).json()['daily']
     except Exception as e:
-        logging.info("Error during getting forecast", e)
+        logging.info("Error during getting forecast")
     finally:
         week = []
         for day in daily[1:]:
