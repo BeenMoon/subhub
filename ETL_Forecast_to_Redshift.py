@@ -14,6 +14,7 @@ def get_forecast(**context):
     logging.info("Getting forecast start")
     try:
         daily = get(link).json()['daily']
+        print(daily[0])
     except Exception as e:
         logging.info("Error during getting forecast")
         print("Error occurs during getting forecast", e)
