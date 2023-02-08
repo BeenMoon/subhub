@@ -80,7 +80,7 @@ get_forecast = PythonOperator(
     task_id = 'get_forecast',
     python_callable = get_forecast,
     params = {
-        'api_key': Variable.get('openweathermap_api_key')
+        'api_key': Variable.get('open_weather_api_key')
         },
     dag = dag_forecast
     )
