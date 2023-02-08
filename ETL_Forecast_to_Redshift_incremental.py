@@ -13,7 +13,8 @@ from cryptography.fernet import Fernet
 
 def get_forecast(**context):
     api_key = context['params']['api_key']
-    print(api_key)
+    print("api_key is ", api_key)
+    logging.info("api_key is ", api_key)
     link = f'https://api.openweathermap.org/data/2.5/onecall?lat=37.413294&lon=126.734086&exclude=current,minutely,hourly,alerts&appid={api_key}&units=metric'
     logging.info("Getting forecast start")
     try:
