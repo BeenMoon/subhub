@@ -4,12 +4,14 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.models import Variable
+from airflow.models.crypto import get_fernet
 from airflow.operators.python import PythonOperator
 from airflow.hooks.postgres_hook import PostgresHook
 
 
 def get_forecast(**context):
-    api_key = Variable('open_weather_api_key').get_val()
+    fernet = get_fernet()
+    api_key = fernet.decrypt(context['params']['api_key'])
     link = f"https://api.openweathermap.org/data/2.5/onecall?lat=37.413294&lon=126.734086&exclude=current,minutely,hourly,alerts&appid={api_key}&units=metric"
     logging.info("Getting forecast start")
     try:
