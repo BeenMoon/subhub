@@ -16,8 +16,7 @@ def get_forecast(**context):
         daily = get(link).json()['daily']
         print(daily[0])
     except Exception as e:
-        logging.info("Error during getting forecast")
-        print("Error occurs during getting forecast", e)
+        logging.info("Error during getting forecast", e)
     finally:
         week = []
         for day in daily[1:]:
