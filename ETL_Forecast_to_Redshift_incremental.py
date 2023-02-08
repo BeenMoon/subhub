@@ -17,18 +17,18 @@ def get_forecast(**context):
     except Exception as e:
         logging.info("Error during getting forecast")
         print("Error occurs during getting forecast", e)
-        
-    week = []
-    for day in daily[1:]:
-        date = datetime.fromtimestamp(day['dt']).strftime('%Y-%m-%d')
-        temp = day['temp']
-        week.append({f'{date}':
-                     {'temp': temp['day'], 'min_temp': temp['min'],'max_temp': temp['max']}
-                    })
-    logging.info("Getting forecast done")
-    execution_date = context['execution_date']
-    logging.info(execution_date)
-    return week
+    finally:
+        week = []
+        for day in daily[1:]:
+            date = datetime.fromtimestamp(day['dt']).strftime('%Y-%m-%d')
+            temp = day['temp']
+            week.append({f'{date}':
+                         {'temp': temp['day'], 'min_temp': temp['min'],'max_temp': temp['max']}
+                        })
+        logging.info("Getting forecast done")
+        execution_date = context['execution_date']
+        logging.info(execution_date)
+        return week
     
 
 def get_Redshift_connection(autocommit = False):
@@ -63,23 +63,23 @@ def load_forecast(**context):
         cur.execute("ROLLBACK;")
         logging.info("Copy and load temp failed")
         raise
-        
-    sql_load = f"DELETE TABLE {schema}.{table};"
-    sql_load += f"""INSERT INTO {schema}.{table}
-                    SELECT date, temp, min_temp, max_temp, created_date
-                    FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY date ORDER BY created_date DESC) ord
-                          FROM {schema}.temp_{table})
-                    WHERE ord = 1;"""
-    try:
-        cur.execute(sql_load)
-        cur.execute("COMMIT;")
-        logging.info("Refresh done")
-    except:
-        cur.execute("ROLLBACK;")
-        logging.info("Refresh failed")
-        raise
-        
-    logging.info("Load forecast done")
+    finally:
+        sql_load = f"DELETE TABLE {schema}.{table};"
+        sql_load += f"""INSERT INTO {schema}.{table}
+                        SELECT date, temp, min_temp, max_temp, created_date
+                        FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY date ORDER BY created_date DESC) ord
+                              FROM {schema}.temp_{table})
+                        WHERE ord = 1;"""
+        try:
+            cur.execute(sql_load)
+            cur.execute("COMMIT;")
+            logging.info("Refresh done")
+        except:
+            cur.execute("ROLLBACK;")
+            logging.info("Refresh failed")
+            raise
+        finally:
+            logging.info("Load forecast done")
     
     
 dag_forecast = DAG(
@@ -90,14 +90,16 @@ dag_forecast = DAG(
     max_active_runs = 1,
     default_args = {
         'retries': 1,
-        'retry_delay': timedelta(minutes=3)}
+        'retry_delay': timedelta(minutes=3)
+        }
     )
 
 get_forecast = PythonOperator(
     task_id = 'get_forecast',
     python_callable = get_forecast,
     params = {
-        'api_key': Variable.get('openweathermap_api_key')},
+        'api_key': Variable.get('openweathermap_api_key')
+        },
     dag = dag_forecast
     )
 
@@ -106,7 +108,8 @@ load_forecast = PythonOperator(
     python_callable = load_forecast,
     params = {
         'schema': 'wkdansqls',
-        'table': 'weather_forecast_incremental'},
+        'table': 'weather_forecast_incremental'
+        },
     dag = dag_forecast
     )
 
