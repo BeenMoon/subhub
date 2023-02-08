@@ -83,7 +83,7 @@ def load_forecast(**context):
     
     
 dag_forecast = DAG(
-    dag_id = 'ETL_Forecast_to_Redshift',
+    dag_id = 'ETL_Forecast_to_Redshift_incremental',
     catchup = False,
     start_date = datetime(2023, 2, 6),
     schedule_interval = '0 0 * * *',
