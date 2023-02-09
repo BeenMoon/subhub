@@ -9,6 +9,8 @@ from airflow.hooks.postgres_hook import PostgresHook
 
 
 def get_forecast(**context):
+    execution_date = context['execution_date']
+    logging.info(execution_date)
     api_key = context['params']['api_key']
     link = f"https://api.openweathermap.org/data/2.5/onecall?lat=37.413294&lon=126.734086&exclude=current,minutely,hourly,alerts&appid={api_key}&units=metric"
     logging.info("Getting forecast start")
@@ -16,6 +18,7 @@ def get_forecast(**context):
         daily = get(link).json()['daily']
     except Exception as e:
         logging.info("Error during getting forecast")
+        print("Error message: ", e)
     finally:
         week = []
         for day in daily[1:]:
@@ -25,8 +28,6 @@ def get_forecast(**context):
                          {'temp': temp['day'], 'min_temp': temp['min'],'max_temp': temp['max']}
                         })
         logging.info("Getting forecast done")
-        execution_date = context['execution_date']
-        logging.info(execution_date)
         return week
     
 
