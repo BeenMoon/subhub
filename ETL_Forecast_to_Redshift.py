@@ -50,7 +50,7 @@ def load_forecast(**context):
     table = context['params']['table']
     week = context['ti'].xcom_pull(key = 'return_value', task_ids = 'get_forecast')
     
-    sql = f"BEGIN;DELETE FROM TABLE {schema}.{table};"
+    sql = f"BEGIN;DELETE FROM {schema}.{table};"
     for day in week:
         key, val = list(day.items())[0]
         sql += f"INSERT INTO {schema}.{table} VALUES ('{key}', {val['temp']}, {val['min_temp']}, {val['max_temp']});"
