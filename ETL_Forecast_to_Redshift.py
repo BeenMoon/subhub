@@ -8,6 +8,7 @@ from airflow.operators.python import PythonOperator
 from airflow.hooks.postgres_hook import PostgresHook
 
 
+
 def get_forecast(**context):
     execution_date = context['execution_date']
     logging.info(execution_date)
@@ -22,7 +23,7 @@ def get_forecast(**context):
         logging.info("Error during getting forecast")
         print("Error message: ", e)
         raise
-    finally:
+    else:
         week = []
         for day in daily[1:]:
             date = datetime.fromtimestamp(day['dt']).strftime('%Y-%m-%d')
@@ -33,7 +34,7 @@ def get_forecast(**context):
         logging.info("Getting forecast done")
         return week
     
-
+    
 def get_Redshift_connection(autocommit = False):
     logging.info("Connection start")
     hook = PostgresHook(postgres_conn_id = 'redshift_dev_db')
@@ -49,7 +50,7 @@ def load_forecast(**context):
     table = context['params']['table']
     week = context['ti'].xcom_pull(key = 'return_value', task_ids = 'get_forecast')
     
-    sql = f"BEGIN;DELETE TABLE {schema}.{table};"
+    sql = f"BEGIN;DELETE FROM TABLE {schema}.{table};"
     for day in week:
         key, val = list(day.items())[0]
         sql += f"INSERT INTO {schema}.{table} VALUES ('{key}', {val['temp']}, {val['min_temp']}, {val['max_temp']});"
@@ -62,8 +63,9 @@ def load_forecast(**context):
         cur.execute("ROLLBACK;")
         logging.info("Load failed")
         raise
-    finally:
+    else:
         logging.info("Load forecast done")
+    
     
     
 dag_forecast = DAG(
@@ -78,6 +80,7 @@ dag_forecast = DAG(
         }
     )
 
+
 get_forecast = PythonOperator(
     task_id = 'get_forecast',
     python_callable = get_forecast,
@@ -86,6 +89,7 @@ get_forecast = PythonOperator(
         },
     dag = dag_forecast
     )
+
 
 load_forecast = PythonOperator(
     task_id = 'load_forecast',
@@ -96,5 +100,6 @@ load_forecast = PythonOperator(
         },
     dag = dag_forecast
     )
+
 
 get_forecast >> load_forecast
