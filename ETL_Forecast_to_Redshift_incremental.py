@@ -19,7 +19,7 @@ def get_forecast(**context):
     except Exception as e:
         logging.info("Error during getting forecast")
         print("Error message: ", e)
-    finally:
+    else:
         week = []
         for day in daily[1:]:
             date = datetime.fromtimestamp(day['dt']).strftime('%Y-%m-%d')
@@ -63,7 +63,7 @@ def load_forecast(**context):
         cur.execute("ROLLBACK;")
         logging.info("Copy and load temp failed")
         raise
-    finally:
+    else:
         sql_load = f"DELETE TABLE {schema}.{table};"
         sql_load += f"""INSERT INTO {schema}.{table}
                         SELECT date, temp, min_temp, max_temp, created_date
