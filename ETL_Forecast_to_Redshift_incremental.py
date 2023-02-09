@@ -64,7 +64,7 @@ def load_forecast(**context):
         logging.info("Copy and load temp failed")
         raise
     else:
-        sql_load = f"DELETE TABLE {schema}.{table};"
+        sql_load = f"DELETE FROM {schema}.{table};"
         sql_load += f"""INSERT INTO {schema}.{table}
                         SELECT date, temp, min_temp, max_temp, created_date
                         FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY date ORDER BY created_date DESC) ord
