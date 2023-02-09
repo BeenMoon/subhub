@@ -51,8 +51,8 @@ def load_forecast(**context):
                     SELECT date, temp, min_temp, max_temp, created_date FROM {schema}.{table};"""
     for day in week:
         key, val = list(day.items())[0]
-        sql_temp = f"""INSERT INTO {schema}.temp_{table} (date, temp, min_temp, max_temp)
-                       VALUES ('{key}', {val['temp']}, {val['min_temp']}, {val['max_temp']});"""
+        sql_temp += f"""INSERT INTO {schema}.temp_{table} (date, temp, min_temp, max_temp)
+                        VALUES ('{key}', {val['temp']}, {val['min_temp']}, {val['max_temp']});"""
         
     cur = get_Redshift_connection(autocommit = False)
     try:
