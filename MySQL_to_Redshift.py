@@ -29,7 +29,7 @@ s3_key = schema + "-" + table
 mysql_to_s3_nps = SqlToS3Operator(
     task_id = 'mysql_to_s3_nps',
     sql_conn_id = "mysql_conn_id",
-    query = "SELECT * FROM prod.nps WHERE DATE(created_at) = DATE('{{ execution_date }}')",
+    query = "SELECT * FROM prod.nps",
     aws_conn_id = "aws_conn_id",
     s3_bucket = s3_bucket,
     s3_key = s3_key,
