@@ -3,7 +3,8 @@ from datetime import timedelta
 
 from airflow import DAG
 from airflow.providers.amazon.aws.transfers.sql_to_s3 import SqlToS3Operator
-from airflow.providers.amazon.aws.transfers.s3_to_redshift import S3ToRedshiftOperator
+
+from plugins.s3_to_redshift_operator import S3ToRedshiftOperator
 
 
 dag = DAG(
@@ -45,10 +46,10 @@ s3_to_redshift_nps = S3ToRedshiftOperator(
     redshift_conn_id = "redshift_dev_db",
     schema = schema,
     table = table,
-    verify = False,
     copy_options=['csv'],
     method = 'REPLACE',
-    upsert_keys = ['id'],
+    primary_key = "id",
+    order_key = "created_at",
     dag = dag
 )
 
