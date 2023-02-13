@@ -35,7 +35,8 @@ mysql_to_s3_nps = SqlToS3Operator(
     s3_key = s3_key,
     verify = False,
     replace = True,
-    pd_kwargs = {'index': False},
+    pd_kwargs = {'index': False,
+                 'header': False},
     dag = dag
 )
 
