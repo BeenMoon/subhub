@@ -9,7 +9,7 @@ from plugins.s3_to_redshift_operator import S3ToRedshiftOperator
 
 dag = DAG(
     dag_id = 'MySQL_to_Redshift',
-    start_date = datetime(2023,2,13), # 날짜가 미래인 경우 실행이 안됨
+    start_date = datetime(2023,2,10), # 날짜가 미래인 경우 실행이 안됨
     schedule_interval = '0 9 * * *',  # 적당히 조절
     max_active_runs = 1,
     catchup = False,
