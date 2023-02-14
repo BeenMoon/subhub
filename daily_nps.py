@@ -36,7 +36,6 @@ def execSQL(**context):
                  , score
                  , COUNT(1)/SUM(COUNT(1)) OVER(PARTITION BY date)::FLOAT AS proportion
             FROM wkdansqls.nps
-            WHERE date = DATE('{logical_date}')
             GROUP BY date, score
             )
         SELECT date
