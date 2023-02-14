@@ -1,16 +1,13 @@
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.models import Variable
-from airflow.hooks.postgres_hook import PostgresHook
-from datetime import datetime
-from datetime import timedelta
-
-from airflow import AirflowException
-
 import requests
 import logging
 import psycopg2
 
+from datetime import datetime
+from datetime import timedelta
+
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.hooks.postgres_hook import PostgresHook
 from airflow.exceptions import AirflowException
 
 
@@ -18,9 +15,7 @@ def get_Redshift_connection():
     hook = PostgresHook(postgres_conn_id = 'redshift_dev_db')
     return hook.get_conn().cursor()
 
-
 def execSQL(**context):
-
     schema = context['params']['schema'] 
     table = context['params']['table']
     select_sql = context['params']['sql']
