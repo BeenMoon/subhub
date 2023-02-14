@@ -18,6 +18,7 @@ def get_Redshift_connection():
 def execSQL(**context):
     schema = context['params']['schema'] 
     table = context['params']['table']
+    logical_date = context['logical_date']
 
     logging.info(schema)
     logging.info(table)
@@ -28,14 +29,14 @@ def execSQL(**context):
     createTemp_sql = f"""
         CREATE TEMP TABLE stage (LIKE {schema}.{table});
     """
-    createTemp_sql += """
+    createTemp_sql += f"""
         INSERT INTO stage (date, nps)
         WITH score_prop AS (
             SELECT DATE(created_at) AS date
                  , score
                  , COUNT(1)/SUM(COUNT(1)) OVER(PARTITION BY date)::FLOAT AS proportion
             FROM wkdansqls.nps
-            WHERE date = DATE('{{ logical_date }}')
+            WHERE date = DATE({logical_date})
             GROUP BY date, score
             )
         SELECT date
