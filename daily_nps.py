@@ -76,22 +76,24 @@ execsql = PythonOperator(
     params = {
         'schema' : 'wkdansqls',
         'table': 'nps_summary',
-        'sql' : """WITH score_prop AS (
-                     SELECT DATE(created_at) AS date
-                          , score
-                          , COUNT(1)/SUM(COUNT(1)) OVER(PARTITION BY date)::FLOAT AS proportion
-                     FROM wkdansqls.nps
-                     WHERE date = DATE('{{ logical_date }}')
-                     GROUP BY date, score
-                   )
-                   SELECT date
-                        , SUM(CASE WHEN score = 0 THEN - accumulation ELSE accumulation END) AS nps
-                   FROM (SELECT date
-                              , score
-                              , SUM(proportion) OVER(PARTITION BY date ORDER BY date, score ROWS BETWEEN CURRENT ROW AND 6 FOLLOWING) AS accumulation
-                         FROM score_prop)
-                   WHERE score = 0 OR score = 9
-                   GROUP BY date"""
+        'sql' : f"""
+            WITH score_prop AS (
+                SELECT DATE(created_at) AS date
+                     , score
+                     , COUNT(1)/SUM(COUNT(1)) OVER(PARTITION BY date)::FLOAT AS proportion
+                FROM wkdansqls.nps
+                WHERE date = DATE('{{ logical_date }}')
+                GROUP BY date, score
+                )
+            SELECT date
+                 , SUM(CASE WHEN score = 0 THEN - accumulation ELSE accumulation END) AS nps
+            FROM (SELECT date
+                       , score
+                       , SUM(proportion) OVER(PARTITION BY date ORDER BY date, score ROWS BETWEEN CURRENT ROW AND 6 FOLLOWING) AS accumulation
+                  FROM score_prop)
+            WHERE score = 0 OR score = 9
+            GROUP BY date
+        """
     },
     dag = dag
 )
