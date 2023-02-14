@@ -18,11 +18,9 @@ def get_Redshift_connection():
 def execSQL(**context):
     schema = context['params']['schema'] 
     table = context['params']['table']
-    select_sql = context['params']['sql']
 
     logging.info(schema)
     logging.info(table)
-    logging.info(select_sql)
 
     cur = get_Redshift_connection()
     
