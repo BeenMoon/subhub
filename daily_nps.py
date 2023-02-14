@@ -65,7 +65,7 @@ def execSQL(**context):
 
 dag = DAG(
     dag_id = "daily_nps",
-    start_date = datetime(2023,02,14),
+    start_date = datetime(2023,2,14),
     schedule_interval = '@once',
     catchup = False
 )
