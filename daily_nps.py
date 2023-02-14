@@ -30,20 +30,19 @@ def execSQL(**context):
 
     cur = get_Redshift_connection()
 
-    create_sql = f"""DROP TABLE IF EXISTS {schema}.temp_{table};CREATE TABLE {schema}.temp_{table} AS """
-    create_sql += select_sql
-    cur.execute(create_sql)
-
-    cur.execute(f"""SELECT COUNT(1) FROM {schema}.temp_{table}""")
-    count = cur.fetchone()[0]
-    if count == 0:
-        raise ValueError(f"{schema}.{table} didn't have any record")
-
+    insert_sql = f"""
+        INSERT INTO {schema}.{table} (date, nps)
+    """
+    insert_sql += select_sql
+    insert_sql += f"""
+        ON CONFLICT (date)
+        DO NOTHING;
+    """
+   
     try:
-        rename_sql = f"""DROP TABLE IF EXISTS {schema}.{table};ALTER TABLE {schema}.temp_{table} RENAME to {table};"""
-        rename_sql += "COMMIT;"
-        logging.info(rename_sql)
-        cur.execute(rename_sql)
+        logging.info(insert_sql)
+        cur.execute(insert_sql)
+        cur.execute("COMMIT;")
     except Exception as e:
         cur.execute("ROLLBACK")
         logging.error('Failed to sql. Completed ROLLBACK!')
@@ -51,8 +50,8 @@ def execSQL(**context):
 
 
 dag = DAG(
-    dag_id = "Build_Summary",
-    start_date = datetime(2021,12,10),
+    dag_id = "daily_nps",
+    start_date = datetime(2023,02,14),
     schedule_interval = '@once',
     catchup = False
 )
@@ -68,6 +67,7 @@ execsql = PythonOperator(
                           , score
                           , COUNT(1)/SUM(COUNT(1)) OVER(PARTITION BY date)::FLOAT AS proportion
                      FROM wkdansqls.nps
+                     WHERE date = DATE('{{ logical_date }}')
                      GROUP BY date, score
                    )
                    SELECT date
@@ -77,7 +77,7 @@ execsql = PythonOperator(
                               , SUM(proportion) OVER(PARTITION BY date ORDER BY date, score ROWS BETWEEN CURRENT ROW AND 6 FOLLOWING) AS accumulation
                          FROM score_prop)
                    WHERE score = 0 OR score = 9
-                   GROUP BY date;"""
+                   GROUP BY date"""
     },
     dag = dag
 )
