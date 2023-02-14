@@ -13,6 +13,7 @@ import psycopg2
 
 from airflow.exceptions import AirflowException
 
+
 def get_Redshift_connection():
     hook = PostgresHook(postgres_conn_id = 'redshift_dev_db')
     return hook.get_conn().cursor()
@@ -24,29 +25,47 @@ def execSQL(**context):
     table = context['params']['table']
     select_sql = context['params']['sql']
 
-    logging.info("Schema: ", schema)
-    logging.info("Table: ", table)
-    logging.info("Query: ", select_sql)
+    logging.info(schema)
+    logging.info(table)
+    logging.info(select_sql)
 
     cur = get_Redshift_connection()
-
-    insert_sql = f"""
-        INSERT INTO {schema}.{table} (date, nps)
+    
+    # 스테이징 테이블 생성
+    createTemp_sql = f"""
+        CREATE TEMP TABLE stage (LIKE {schema}.{table});
     """
-    insert_sql += select_sql
-    insert_sql += f"""
-        ON CONFLICT (date)
-        DO NOTHING;
+    createTemp_sql += """
+        INSERT INTO stage (date, nps)
     """
-   
+    createTemp_sql += select_sql
+    createTemp_sql += ";"
+    cur.execute(createTemp_sql)
+    cur.execute("COMMIT;")
+    
+    # 트랜잭션: 대상 테이블 업데이트
     try:
-        logging.info(insert_sql)
-        cur.execute(insert_sql)
+        update_sql = """
+            BEGIN TRANSACTION;
+        """
+        update_sql += f"""
+            DELETE FROM {schema}.{table}
+            USING stage
+            WHERE {schema}.{table}.date = stage.date;
+        """
+        update_sql += f"""
+            INSERT INTO {schema}.{table}
+            SELECT * FROM stage;
+            END TRANSACTION;
+        """
+        cur.execute(update_sql)
         cur.execute("COMMIT;")
     except Exception as e:
-        cur.execute("ROLLBACK")
+        cur.execute("ROLLBACK;")
         logging.error('Failed to sql. Completed ROLLBACK!')
-        raise AirflowException("Error: ", e)
+        raise AirflowException()
+    else:
+        cur.execute("DROP TABLE stage;")
 
 
 dag = DAG(
