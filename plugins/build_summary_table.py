@@ -15,8 +15,8 @@ def create_stage(summary_dict:dict, conn_id:str) -> None:
     logging.info(table)
     
     createTemp_sql = f"""
-        CREATE TABLE stage (LIKE {schema}.{table});
-        INSERT INTO stage """
+        CREATE TABLE wkdansqls.stage (LIKE {schema}.{table});
+        INSERT INTO wkdansqls.stage """
     createTemp_sql += summary_dict['main_sql']
     
     cur = get_redshift_connection(conn_id)
@@ -43,10 +43,10 @@ def update_summary(summary_dict:dict, conn_id:str) -> None:
     update_sql = f"""
         BEGIN TRANSACTION;
         DELETE FROM {schema}.{table}
-        USING stage
-        WHERE {schema}.{table}.{pk} = stage.{pk};
+        USING wkdansqls.stage
+        WHERE {schema}.{table}.{pk} = wkdansqls.stage.{pk};
         INSERT INTO {schema}.{table}
-        SELECT * FROM stage;
+        SELECT * FROM wkdansqls.stage;
         END TRANSACTION;"""
     
     cur = get_redshift_connection(conn_id)
@@ -66,7 +66,7 @@ def update_summary(summary_dict:dict, conn_id:str) -> None:
                 logging.error("output test error")
                 raise AirflowException(f"Output validation failed: count < {test['count']}")
         cur.execute("COMMIT;")
-        cur.execute("DROP TABLE stage;")
+        cur.execute("DROP TABLE wkdansqls.stage;")
     
     
 def get_redshift_connection(conn_id:str):
