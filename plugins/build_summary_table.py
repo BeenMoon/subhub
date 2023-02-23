@@ -15,7 +15,7 @@ def create_stage(summary_dict:dict, conn_id:str) -> None:
     logging.info(table)
     
     createTemp_sql = f"""
-        CREATE TEMP TABLE stage (LIKE {schema}.{table});
+        CREATE TABLE stage (LIKE {schema}.{table});
         INSERT INTO stage """
     createTemp_sql += summary_dict['main_sql']
     
