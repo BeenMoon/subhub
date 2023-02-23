@@ -23,7 +23,7 @@ def create_stage(summary_dict:dict, conn_id:str) -> None:
     # input test
     for test in input_test:
         cur.execute(test['sql'])
-        if test['count'] < cur.fetchone()['value']:
+        if test['count'] < cur.fetchone()[0]:
             logging.error("input test error")
             raise AirflowException(f"Input validation failed: count < {test['count']}")
     # run main sql
@@ -62,7 +62,7 @@ def update_summary(summary_dict:dict, conn_id:str) -> None:
         # output test
         for test in output_test:
             cur.execute(test['sql'])
-            if test['count'] < cur.fetchone()['value']:
+            if test['count'] < cur.fetchone()[0]:
                 logging.error("output test error")
                 raise AirflowException(f"Output validation failed: count < {test['count']}")
         cur.execute("COMMIT;")
