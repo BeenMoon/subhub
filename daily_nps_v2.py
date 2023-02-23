@@ -19,10 +19,10 @@ with DAG(
         max_active_runs=1,
         catchup=False,
         on_success_callback=[
-            slack.send_slack_result('success')
+            slack.send_slack_result('success', '{{ dag.dag_id }}')
         ],
         on_failure_callback=[
-            slack.send_slack_result('failure')
+            slack.send_slack_result('failure', '{{ dag.dag_id }}')
         ],
 ):
     
