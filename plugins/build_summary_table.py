@@ -51,6 +51,13 @@ def update_summary(summary_dict:dict, conn_id:str) -> None:
     
     cur = get_redshift_connection(conn_id)
     
+    # output test
+    for test in output_test:
+        cur.execute(test['sql'])
+        if test['count'] > cur.fetchone()[0]:
+            logging.error("output test error")
+            raise AirflowException(f"Output validation failed: count < {test['count']}")
+    
     try:
         # run main sql
         cur.execute(update_sql)
@@ -59,12 +66,6 @@ def update_summary(summary_dict:dict, conn_id:str) -> None:
         logging.error("query failed. rollbacked.")
         raise AirflowException("Error occurs during transaction.")
     else:
-        # output test
-        for test in output_test:
-            cur.execute(test['sql'])
-            if test['count'] > cur.fetchone()[0]:
-                logging.error("output test error")
-                raise AirflowException(f"Output validation failed: count < {test['count']}")
         cur.execute("COMMIT;")
         cur.execute("DROP TABLE wkdansqls.stage;")
     
