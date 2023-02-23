@@ -21,10 +21,11 @@ def create_stage(summary_dict:dict, conn_id:str) -> None:
     
     cur = get_redshift_connection(conn_id)
     # input test
-    cur.execute(input_test['sql'])
-    if input_test['count'] < cur.fetchone():
-        logging.error("input test error")
-        raise AirflowException(f"Input validation failed: count < {input_test['count']}")
+    for test in input_test:
+        cur.execute(test['sql'])
+        if test['count'] < cur.fetchone():
+            logging.error("input test error")
+            raise AirflowException(f"Input validation failed: count < {test['count']}")
     # run main sql
     cur.execute(createTemp_sql)
     cur.execute("COMMIT;")
@@ -59,10 +60,11 @@ def update_summary(summary_dict:dict, conn_id:str) -> None:
         raise AirflowException("Error occurs during transaction.")
     else:
         # output test
-        cur.execute(output_test['sql'])
-        if output_test['count'] < cur.fetchone():
-            logging.error("output test error")
-            raise AirflowException("Output validation failed: count < {output_test['count']}")
+        for test in output_test:
+            cur.execute(test['sql'])
+            if test['count'] < cur.fetchone():
+                logging.error("output test error")
+                raise AirflowException(f"Output validation failed: count < {test['count']}")
         cur.execute("COMMIT;")
         cur.execute("DROP TABLE stage;")
     
