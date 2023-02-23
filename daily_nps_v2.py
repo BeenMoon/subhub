@@ -26,7 +26,7 @@ with DAG(
         ],
 ):
     
-    create_stage_table = build_summary_table.create_stage(nps_summary, 'redshift_dev_db')
-    update_summary_table = build_summary_table.update_summary(nps_summary, 'redshift_dev_db')
+    create_stage_table = build_summary_table.create_stage(nps_summary.dictionary, 'redshift_dev_db')
+    update_summary_table = build_summary_table.update_summary(nps_summary.dictionary, 'redshift_dev_db')
     
     create_stage_table >> update_summary_table
