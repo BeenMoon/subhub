@@ -18,12 +18,8 @@ with DAG(
         max_active_tasks=1,
         max_active_runs=1,
         catchup=False,
-        on_success_callback=[
-            slack.send_slack_result('success', '{{ dag.dag_id }}')
-        ],
-        on_failure_callback=[
-            slack.send_slack_result('failure', '{{ dag.dag_id }}')
-        ],
+        on_success_callback=slack.send_slack_result('success'),
+        on_failure_callback=slack.send_slack_result('failure'),
 ):
     
     create_stage_table = build_summary_table.create_stage(nps_summary.dictionary, 'redshift_dev_db')
