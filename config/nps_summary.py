@@ -18,7 +18,7 @@ dictionary = {
      ],
   'output_test': [
          {
-             'sql': "SELECT COUNT(1) FROM wkdansqls.temp_nps_summary;",
+             'sql': "SELECT COUNT(1) FROM wkdansqls.stage;",
              'count': 12
          }
      ]
