@@ -27,7 +27,6 @@ def create_stage(summary_dict:dict, conn_id:str) -> None:
             logging.error("input test error")
             raise AirflowException(f"Input validation failed: count < {test['count']}")
     # run main sql
-    logging.info(createTemp_sql)
     cur.execute(createTemp_sql)
     cur.execute("COMMIT;")
     
