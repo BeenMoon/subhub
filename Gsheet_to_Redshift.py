@@ -103,6 +103,7 @@ for sheet in sheets:
         task_id = 'copy_{}_to_s3'.format(sheet["table"]),
         python_callable = copy_to_s3,
         params = {
+            'schema': sheet['schema'],
             "table": sheet["table"]
         },
         provide_context=True,
