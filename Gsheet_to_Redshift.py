@@ -115,7 +115,7 @@ for sheet in sheets:
         schema = sheet["schema"],
         table = sheet["table"],
         copy_options=['csv', 'IGNOREHEADER 1'],
-        truncate_table = True,
+        method='REPLACE',
         redshift_conn_id = "redshift_dev_db",
         dag = dag
     )
